@@ -15,9 +15,16 @@
 
 // ----------------------------------------------------------------------------------------
 Tstate::Tstate ( Tbasis bas,  Thamiltonian h, std::vector<std::complex<double> > coe)
-	: basis( bas ), coeffs (coe), hamiltonian( h )
+	: basis( bas ),  hamiltonian( h )
 {
-  
+	coeffs.resize(basis.get_n_vec());
+
+	for(int i = 0; i < basis.get_n_vec(); ++i)
+	{
+		coeffs(i) = coe[i];
+	}
+
+	res_U_determined = false;  
 
 }
 // =======================================================================================
@@ -57,42 +64,42 @@ void Tstate::print()
 // ----------------------------------------------------------------------------------------
 void Tstate::evolve(double  Dt)
 {
-	arma::Mat< std::complex<double> > alpha, evol;
-	arma::mat eigve;
-	arma::vec eigva;
-	alpha.resize( basis.get_n_vec(), basis.get_n_vec() );
-	evol.resize( basis.get_n_vec(), basis.get_n_vec() );
-	
-	eigve = hamiltonian.get_eigvec();
-	eigva = hamiltonian.get_eigval();
-	//eigvec.print();
-	for(int i = 0; i < basis.get_n_vec(); ++i)
+	if( !res_U_determined )
 	{
-		for(int j = 0; j < basis.get_n_vec(); ++j)
+		arma::Mat< std::complex<double> > alpha, evol;
+		arma::mat eigve;
+		arma::vec eigva;
+		alpha.resize( basis.get_n_vec(), basis.get_n_vec() );
+		evol.resize( basis.get_n_vec(), basis.get_n_vec() );
+		
+		eigve = hamiltonian.get_eigvec();
+		eigva = hamiltonian.get_eigval();
+		//eigvec.print();
+		for(int i = 0; i < basis.get_n_vec(); ++i)
 		{
-			//std::cout << eigvec(i,j) << std::endl;
-			alpha(i,j) = std::complex<double> ( eigve(i,j) , 0.);
+			for(int j = 0; j < basis.get_n_vec(); ++j)
+			{
+				//std::cout << eigvec(i,j) << std::endl;
+				alpha(i,j) = std::complex<double> ( eigve(i,j) , 0.);
+			}
+		
+		}
+		
+		for(int i = 0; i < basis.get_n_vec(); ++i)
+		{
+			evol(i, i) = std::exp(  std::complex<double> ( 0.,-eigva[i]*Dt ) );    
 		}
 	
+		res_U = alpha*evol*alpha.t();
+		res_U_determined = true;
 	}
-	
-	for(int i = 0; i < basis.get_n_vec(); ++i)
-	{
-		evol(i, i) = std::exp(  std::complex<double> ( 0.,-eigva[i]*Dt ) );    
-	}
-
-	arma::Mat< std::complex<double> > res_U = alpha*evol*alpha.t();
 
 	//auto asdf = res_U * res_U.t();
 	//asdf.print();
 	//res_U.print();
 
-	std::vector < std::complex<double> > res_vec;
-	
-	for(int i = 0; i < basis.get_n_vec(); ++i)
-	{
-		res_vec.push_back( std::complex<double> ( 0.,0.) );
-	} 
+	arma::Row < std::complex<double> > res_vec;
+	res_vec.resize( basis.get_n_vec() );
 	
 	/*
 	for(int i = 0; i < basis.get_n_vec(); ++i)
@@ -101,17 +108,12 @@ void Tstate::evolve(double  Dt)
 	}
 	*/
 
-	for(int i = 0; i < basis.get_n_vec(); ++i)
-	{
-		for(int j = 0; j < basis.get_n_vec(); ++j)
-		{
-			res_vec[i] += coeffs[j]*res_U(j,i);
-		}
-	}     
+	res_vec = coeffs * res_U;
+
 	
 	for( int i = 0; i < basis.get_n_vec(); ++i) 
 	{
-		coeffs[i] = res_vec[i];
+		coeffs(i) = res_vec(i);
 	}
 
 }

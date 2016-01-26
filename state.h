@@ -9,6 +9,7 @@
 
 #include "basis.h"
 
+
 #ifndef STATE_H_
 #define STATE_H_
 
@@ -30,9 +31,9 @@ public:
 private:
 	Tbasis basis;	
 	Thamiltonian hamiltonian;
-	std::vector< std::complex<double> > coeffs;
-
-      
+	arma::Row< std::complex<double> > coeffs;
+	bool res_U_determined;
+    arma::Mat< std::complex<double> > res_U;  
 };
 
 #endif 

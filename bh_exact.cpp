@@ -60,7 +60,7 @@ int main()
             {
                 for(int iWU = 0; iWU < vWU.size(); ++iWU) 
                 {                        
-                    string fname = "L_";
+                    string fname = "dupL_";
                     stringstream ssL, ssN,ssW, ssWU, sszmax;
                     
                     ssL << vL[il];
@@ -80,8 +80,8 @@ int main()
                     basis1.write_vectors( fname );
                     
 					
-					std::vector<double> average_imb(20000,0.);
-					int tsteps = 20000;
+					std::vector<double> average_imb(4000,0.);
+					int tsteps = 4000;
 
                     for(int z = 0; z < zmax; ++z)
                     {
@@ -124,7 +124,7 @@ int main()
 						for(int it = 0; it < tsteps; it++)
 						{
 							average_imb[it] += state1.calc_bosonic_even_odd_imbalance() ;
-							state1.evolve( 0.001 );
+							state1.evolve( 0.01 );
 						}
 							//fs1 << 0.001*it << " "  << state1.calc_bosonic_even_odd_imbalance() <<std::endl;				
 
